@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package chat;
+
+//执行命令： protoc --go_out=. --go-grpc_out=. chat.proto
+option go_package = "./pb"; // Adjust the path as necessary
+
+service ChatService {
+    rpc AuthGrpc(AuthRequest) returns (AuthResponse);  // grpc客户端连接校验
+    rpc ChatSign(SignRequest) returns (SignResponse); // 用户登录聊天服务校验
+    rpc GetUserInfo(UserRequest) returns (UserResponse); // 获取用户信息
+}
+
+
+message GenDirectRoomIDRequest {
+    string sender_id  = 1;
+    string receiver_id  = 2;
+}
+
+message GenDirectRoomIDResponse {
+    string sender_id  = 1;
+    string receiver_id  = 2;
+    string room_id = 3;
+}
+
+message UserRequest {
+    repeated string user_ids = 1;
+}
+
+message UserResponse {
+    repeated User Users  = 1;
+}
+
+message User {
+    string user_id = 1;
+    string anon_id = 2;
+    string custom_id = 3;
+    string nickname = 4;
+    string avatar = 5;
+    string gender = 6;
+    bool gender_hidden = 7;
+}
+
+message RoomResponse {
+    repeated Room Rooms  = 1;
+}
+
+message Room {
+    string room_id = 1;
+    string room_type = 2;
+    string room_name = 3;
+    string room_avatar = 4;
+    string owner_id = 5;
+}
+
+message SignRequest {
+    string user_id = 1;
+    int64 timestamp = 2;
+    int64 expire = 3;
+    string ip = 4;
+    string signature = 5;    
+}
+
+message SignResponse {
+    string user_id = 1;
+    bool success = 2;
+    string message = 3;
+}
+
+// 业务数据更新通知
+message DataRefresh {
+    string refresh_user =  1;  // UserID 用户信息修改
+    string refresh_group =  2;  //GroupID 群成员变更修改
+    int64 timestamp = 3;
+}
+
+
+message ChatMessage {
+    string from = 1;
+    repeated string to_users = 2; // 接收者，可以是一个数组
+    repeated string to_groups = 3; // 接收群组，可以是一个数组
+    string type = 4; // text, image, video, etc.
+    string message_id = 5;
+    int64 timestamp = 6;
+    oneof content {        
+        AudioMessage audio = 7;
+        VideoMessage video = 8;
+        FileMessage file = 9;
+        SystemMessage system = 10;
+        ScheduleMessage schedule = 11;
+        TextMessage text = 12;
+        ImageMessage image = 13;
+    }
+    MessageStatus status = 14;
+    repeated string user_ids = 15;
+    bool restricted = 16;
+}
+
+message TextMessage {
+    string text = 1;
+}
+
+message ImageMessage {
+    string url = 1;
+    string thumbnail_url = 2;
+}
+
+message AudioMessage {
+    string url = 1;
+    int32 duration = 2;
+}
+
+message VideoMessage {
+    string url = 1;
+    string thumbnail_url = 2;
+    int32 duration = 3;
+}
+
+message FileMessage {
+    string url = 1;
+    string filename = 2;
+}
+
+message SystemMessage {
+    string content = 1;
+}
+
+
+message ScheduleMessage {
+    string title = 1;
+    string description = 2;
+    int64 start_time = 3;
+    int64 end_time = 4;
+}
+
+message RoomRequest {
+   repeated string room_id = 1;
+}
+
+message RoomUsers {
+    repeated User users = 1;
+}
+
+message UserRooms {
+    repeated Room rooms = 1;
+}
+
+
+// 定义一个包含 repeated User 的消息类型
+message UserList {
+    repeated User users = 1;
+}
+
+// 定义 map[string][]User 的消息类型
+message UserMap {
+    map<string, UserList> user_map = 1;
+}
+
+
+// 定义一个包含 repeated User 的消息类型
+message RoomList {
+    repeated Room rooms = 1;
+}
+
+// 定义 map[string][]User 的消息类型
+message RoomMap {
+    map<string, RoomList> room_map = 1;
+}
+
+message MessageStatus {
+    string message_id = 1;
+    string status = 2; // read, delivered, etc.
+}
+
+message StatusResponse {
+    bool success = 1;
+}
+
+message MessageHistoryRequest {
+    string user_id = 1;
+    string group_id = 2;
+    int64 start_timestamp = 3;
+    int64 end_timestamp = 4;
+}
+
+message MessageHistoryResponse {
+    repeated ChatMessage messages = 1;
+}
+
+// Authentication messages
+message AuthRequest {
+    string username = 1;
+    string password = 2;
+}
+
+message AuthResponse {
+    string token = 1;
+    bool success = 2;
+    string message = 3;
+}

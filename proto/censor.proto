@@ -1,0 +1,428 @@
+syntax = "proto3";
+
+// 在protobuf/pbadmin目录: 
+// protoc --go_out=. --go-grpc_out=. censor.proto
+package censor;
+
+import "google/protobuf/timestamp.proto"; // Import for Timestamp type
+
+option go_package = "./admin_grpc"; // Adjust the path as necessary
+
+// 审核阶段
+enum CensorStage {
+    UNREVIEWED = 0; // 未审核
+    MACHINE = 1; // 机器审核
+    HUMAN = 2; // 人工审核
+    SECONDARY = 3; // 多次审核
+}
+
+// 审核状态
+enum CensorStatus {
+    PENDING = 0;
+    APPROVED = 1;
+    REJECTED = 2;
+    FLAGGED = 3; // 标记为需要进一步审核
+}
+
+// Define Gender enum
+enum Gender {
+    UNKNOWN = 0;
+    MALE = 1;
+    FEMALE = 2;
+    OTHER = 3;
+}
+
+
+// Define UserField enum
+enum UserField {
+    USER_FIELD_UNKNOWN = 0;  // 占位符值(生成的json，0值会被 omitempty)
+    USER_FIELD_AVATAR = 1;    
+    USER_FIELD_PROFILE = 2;    
+    USER_FIELD_QUOTE = 3; // 签名
+    USER_FIELD_REAL_NAME = 4; // 真实姓名
+    USER_FIELD_VOCATION = 5; // 职业    
+    USER_FIELD_NICKNAME = 6;
+    USER_FIELD_Consult = 7; // 咨询介绍
+}
+
+// Define UserAttrCategory enum
+enum UserAttrCategory {
+    CATEGORY_UNKNOWN = 0;
+    EDUCATION = 1;
+    MAJOR = 2;
+    CITY = 3;
+    VOCATION = 4;
+}
+
+enum FeedbackCategory {
+    OTHER1 = 0;
+    SUGGESTION = 1;
+    COMPLAINT = 2;
+    BUG = 3;
+}
+
+enum FeedbackStatus {
+    PROCESSING = 0;
+    RECEIVED = 1;    
+    RESOLVED = 2;
+    DISMISSED = 3;
+}
+
+
+enum ComplaintType {
+    OTHER2 = 0; // 其他
+    SPAM = 1;  // 垃圾信息
+    ABUSE = 2; // 侮辱性语言
+    PORN = 3;  // 色情内容
+    INFRINGEMENT = 4; // 侵犯权益
+    CRIME = 6; // 违法犯罪
+    SENSITIVE = 7; // 政治敏感
+    MARKETING = 8; // 违规营销
+    MISINFO = 9; // 不实信息
+    ENDANGER = 10; // 危害人生安全
+    MINOR = 11; // 未成年相关
+    AI = 12; // AI生成内容
+    ABNORMAL = 13; // 不规范表达
+    PHISHING = 14; // 诈骗
+    EXTERNAL = 15; // 站外导流
+    UNFRIENDLY = 16; // 不友善
+    INDECENT = 17; // 诱导欺骗
+    VIOLENCE = 18; // 网络暴力
+    SUICIDE = 19; // 疑似自残
+    HATE = 20;  // 我不喜欢
+}
+
+
+// Define TargetItem message (if needed)
+message TargetItem {
+    string key = 1;
+    string value = 2;
+}
+
+
+service AdminService {
+    rpc TestGrpc (TestRequest) returns (TestResponse); // 测试
+
+    rpc User (UserRequest) returns (UserResponse); // 用户详情
+
+    rpc Post (PostRequest) returns (PostResponse); // 帖子详情
+
+    rpc Comment (CommentRequest) returns (CommentResponse); // 评论详情
+
+    rpc Topic (TopicRequest) returns (TopicResponse); // 话题 (职业使用topic审核)
+
+    // 审核帖子内容
+    rpc CensorPost (CensorPostRequest) returns (CensorPostResponse);
+    
+    // 审核评论内容
+    rpc CensorComment (CensorCommentRequest) returns (CensorCommentResponse);
+
+    // 审核用户资料
+    rpc CensorUser (CensorUserRequest) returns (CensorUserResponse);
+
+    // 审核话题
+    rpc CensorTopic (CensorTopicRequest) returns (CensorTopicResponse);
+
+    // 反馈意见获取
+    rpc Feedback (FeedbackRequest) returns (FeedbackResponse);
+    
+    // 反馈意见处理 (发送通知)
+    rpc CensorFeedback (CensorFeedbackRequest) returns (CensorFeedbackResponse);
+
+    // 举报信息获取
+    rpc Complaint (ComplaintRequest) returns (ComplaintResponse);
+
+    // 举报信息处理 (发送通知)
+    rpc CensorComplaint (CensorComplaintRequest) returns (CensorComplaintResponse);
+
+    // 提现申请
+    rpc Withdrawal (WithdrawRequest) returns (WithdrawResponse);
+
+    // 交易列表(提现参考详情)
+    rpc TransactionList (TransactionListRequest) returns (TransactionListResponse);    
+
+    // 提现申请处理
+    rpc CensorWithdraw (CensorWithdrawRequest) returns (CensorWithdrawResponse);
+
+}
+
+
+// 测试请求
+message TestRequest {
+    string userId = 1; // 用户ID
+}
+
+// 测试响应
+message TestResponse {
+    string id = 1; // 帖子ID
+}
+
+
+// 用户详情
+message UserRequest {
+    string userId = 1; // 用户ID
+}
+
+// 用户详情响应
+message UserResponse {
+    string user_id = 1;
+    string anon_id = 2;
+    string custom_id = 3;
+    string custom_id_lcase = 4;
+    google.protobuf.Timestamp custom_id_time = 5;
+    string unionid = 6;
+    string open_id = 7;
+    string app_id = 8;
+    string phone_encryption = 9;
+    string phone_partial = 10;
+    string phone_hash = 11;
+    bool phone_verified = 12;
+    string nickname = 13;
+    string realname = 14;
+    bool realname_hidden = 15;
+    Gender gender = 16;
+    bool gender_hidden = 17;
+    int32 birth_year = 18;
+    int32 birth_month = 19;
+    bool birth_hidden = 20;
+    string avatar = 21;
+    google.protobuf.Timestamp last_login_time = 22;
+    bool user_hidden = 23;
+    bool is_deactivated = 24;
+    google.protobuf.Timestamp deactivated_at = 25;
+    string quote = 26;
+    string user_profile = 27;
+    CensorStatus censor_status = 28;
+    string censorsum = 29;
+}
+
+
+// 帖子详情
+message PostRequest {
+    string postId = 1; // 帖子ID
+}
+
+// 帖子详情响应
+message PostResponse {
+    string post_id = 1;
+    string title = 2;
+    string text = 3;
+    bool is_top = 4;
+    string user_id = 5;
+    repeated string mentions = 6;
+    bool is_anon = 7;
+    string anon_name = 8;
+    string anon_avatar = 9;
+    google.protobuf.Timestamp created_at = 10;
+    google.protobuf.Timestamp updated_at = 11;
+    CensorStatus censor_status = 12;
+    repeated string topics = 13;
+    bool is_targeted = 14;
+    repeated TargetItem targets = 15;
+    string ip = 16;
+    string device_info = 17;
+    bool is_deleted = 18;
+    google.protobuf.Timestamp deleted_at = 19;
+    bool is_hidden = 20;
+    double longitude = 21;
+    double latitude = 22;
+    string city = 23;
+    string censorsum = 24;
+}
+
+
+// 评论详情
+message CommentRequest {
+    string commentId = 1; // 评论ID
+}
+
+// 评论详情响应
+message CommentResponse {
+    string comment_id = 1;
+    string post_id = 2;
+    string relate_id = 3;
+    string reply_to = 4;
+    string user_id = 5;
+    bool is_anon = 6;
+    string anon_name = 7;
+    string anon_avatar = 8;
+    string content = 9;
+    repeated string images = 10;
+    repeated string mentions = 11;
+    google.protobuf.Timestamp created_at = 12;
+    CensorStatus censor_status = 13;
+    bool is_deleted = 14;
+    google.protobuf.Timestamp deleted_at = 15;
+    string ip = 16;
+    string device_info = 17;
+    double longitude = 18;
+    double latitude = 19;
+    string city = 20;
+    string censorsum = 21;
+}
+
+
+message UserModification {
+    string user_id = 1;
+    string nickname = 2;
+    string custom_id = 3;
+    string realname = 4;
+    Gender gender = 5;
+    int32 birth_year = 6;
+}
+
+
+
+// 审核帖子请求
+message CensorPostRequest {
+    string postId = 1; // 帖子ID
+    CensorStatus status = 2; // 审核状态
+    CensorStage stage = 3; // 审核阶段
+    string censorsum = 4;
+}
+
+// 审核帖子响应 (成功)
+message CensorPostResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+// 审核评论请求
+message CensorCommentRequest {
+    string commentId = 1; // 评论ID
+    CensorStatus status = 2; // 审核状态
+    CensorStage stage = 3; // 审核阶段
+    string censorsum = 4;
+}
+
+// 审核评论响应
+message CensorCommentResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+// 审核用户资料请求
+message CensorUserRequest {
+    string userId = 1; // 用户ID
+    CensorStage stage = 2; // 审核阶段
+    repeated UserFieldCensor fields = 3; // 审核字段
+    string censorsum = 4;
+}
+
+message UserFieldCensor {
+    CensorStatus status = 1; // 审核状态
+    UserField field = 2; // 审核字段 
+}
+
+// 审核用户资料响应
+message CensorUserResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+message TopicRequest {
+    string topicId = 1; // 话题ID
+}
+
+message TopicResponse {
+    string topicId = 1; // 话题ID
+    string topicName = 2;
+    bool personable = 3;
+    UserAttrCategory category = 4;
+    CensorStatus censor_status = 5;
+}
+
+message CensorTopicRequest {
+    string topicId = 1; // 话题ID
+    string topicName = 2; // 话题ID
+    CensorStatus status = 3; // 审核状态
+    CensorStage stage = 4; // 审核阶段
+}
+
+
+message CensorTopicResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+message FeedbackRequest {
+    string feedbackId = 1; 
+}
+
+
+message FeedbackResponse {
+    string feedbackId = 1; 
+    string userId = 2;
+    string content = 3;
+    repeated string images = 4;
+    string connection = 5;
+    FeedbackCategory category = 6;
+    FeedbackStatus status = 7;  // 反馈的处理状态（如"received", "processing", "resolved", "dismissed"等）
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp resolved_at = 9;
+    string resolution = 10; // 处理结果的详细信息
+    string response = 11; // 对用户反馈的回复内容
+}
+
+message CensorFeedbackRequest{
+    string feedbackId = 1;
+    FeedbackCategory status = 2;
+}
+
+message CensorFeedbackResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+message ComplaintRequest{
+    string complaintId = 1;
+}
+
+message ComplaintResponse {
+    string complaintId = 1;
+    string userId = 2;
+    string contentId = 3;
+    string contentType = 4;
+    ComplaintType complaintType = 5;
+    CensorStatus censor_status = 6;    
+    string description = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp resolved_at = 9;
+    string resolution = 10;
+}
+
+message CensorComplaintRequest {
+    string complaintId = 1;
+    CensorStatus status = 2;
+}
+
+message CensorComplaintResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+message WithdrawRequest {
+    string WithdrawId = 1;
+}
+
+message WithdrawResponse {
+    
+}
+
+message CensorWithdrawRequest {
+    string WithdrawId = 1;
+    CensorStatus status = 2;
+}
+
+message CensorWithdrawResponse {
+    bool success = 1;
+    string err = 2;
+}
+
+message TransactionListRequest {
+    string userId = 1;
+}
+
+message TransactionListResponse {
+ 
+}
