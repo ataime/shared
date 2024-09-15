@@ -1,4 +1,4 @@
-package consts
+package shared
 
 // 必须与业务服务一致
 type WsChatSign struct {
