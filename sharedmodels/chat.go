@@ -1,4 +1,4 @@
-package models
+package sharedmodels
 
 type Chat struct {
 	ChatId string `json:"chat_id"`

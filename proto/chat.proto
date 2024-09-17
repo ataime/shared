@@ -11,7 +11,6 @@ service ChatService {
     rpc GetUserInfo(UserRequest) returns (UserResponse); // 获取用户信息
 }
 
-
 message GenDirectRoomIDRequest {
     string sender_id  = 1;
     string receiver_id  = 2;
