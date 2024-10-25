@@ -1,4 +1,4 @@
-package shareddto
+package kafka
 
 import (
 	"time"
@@ -18,13 +18,18 @@ type OutChatMsg struct {
 }
 
 type ShortUserInfo struct {
-	UserID       string `json:"user_id"`       // 用户ID
-	AnonID       string `json:"anon_id"`       // 用户匿名ID标识（对外隐藏UserID，保护用户隐私）
-	CustomID     string `json:"custom_id"`     // 用户自定义ID
-	Nickname     string `json:"nickname"`      // 昵称
-	Avatar       string `json:"avatar"`        // 头像
-	Gender       string `json:"gender"`        // 性别（同 realname 一样限制逻辑，不允许修改）
-	GenderHidden bool   `json:"gender_hidden"` // 性别隐藏
+	UserID       string   `json:"user_id"`                           // 用户ID
+	AnonID       string   `json:"anon_id"`                           // 用户匿名ID标识（对外隐藏UserID，保护用户隐私）
+	CustomID     string   `gorm:"column:custom_id" json:"custom_id"` // 用户自定义ID
+	Nickname     string   `json:"nickname"`                          // 昵称
+	Avatar       string   `json:"avatar"`                            // 头像
+	Gender       Gender   `json:"gender"`                            // 性别（同 realname 一样限制逻辑，不允许修改）
+	GenderHidden bool     `json:"gender_hidden"`                     // 性别隐藏
+	From         string   `json:"from"`                              // 来源
+	IsMember     bool     `json:"is_member"`                         // 是否会员
+	IsDeregister bool     `json:"is_deregister"`                     // 是否注销
+	Tags         []string `json:"tags"`                              // 标签
+
 }
 
 type ChatContent struct {

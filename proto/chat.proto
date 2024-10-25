@@ -3,13 +3,21 @@ syntax = "proto3";
 package chat;
 
 //执行命令： protoc --go_out=. --go-grpc_out=. chat.proto
-option go_package = "./pb"; // Adjust the path as necessary
+option go_package = "./chat"; // 目标生成的go文件路径
 
 service ChatService {
     rpc AuthGrpc(AuthRequest) returns (AuthResponse);  // grpc客户端连接校验
     rpc ChatSign(SignRequest) returns (SignResponse); // 用户登录聊天服务校验
+
+    // 用户认证
+    rpc Authenticate(AuthRequest) returns (AuthResponse);
+
+    // 用户登录聊天服务校验
+    rpc SignIn(SignRequest) returns (SignResponse);
+    
     rpc GetUserInfo(UserRequest) returns (UserResponse); // 获取用户信息
 }
+
 
 message GenDirectRoomIDRequest {
     string sender_id  = 1;
@@ -165,6 +173,8 @@ message RoomList {
 message RoomMap {
     map<string, RoomList> room_map = 1;
 }
+
+
 
 message MessageStatus {
     string message_id = 1;

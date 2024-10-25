@@ -2,11 +2,12 @@ syntax = "proto3";
 
 // 在protobuf/pbadmin目录: 
 // protoc --go_out=. --go-grpc_out=. censor.proto
+// protoc --go_out=. --go-grpc_out=. *.proto 
 package censor;
 
 import "google/protobuf/timestamp.proto"; // Import for Timestamp type
 
-option go_package = "./admin_grpc"; // Adjust the path as necessary
+option go_package = "./censor"; // 目标生成的go文件路径
 
 // 审核阶段
 enum CensorStage {
@@ -42,13 +43,13 @@ enum UserField {
     USER_FIELD_REAL_NAME = 4; // 真实姓名
     USER_FIELD_VOCATION = 5; // 职业    
     USER_FIELD_NICKNAME = 6;
-    USER_FIELD_Consult = 7; // 咨询介绍
+    USER_FIELD_CONSULT = 7; // 咨询介绍
 }
 
-// Define UserAttrCategory enum
-enum UserAttrCategory {
+// Define UserTagCategory enum
+enum UserTagCategory {
     CATEGORY_UNKNOWN = 0;
-    EDUCATION = 1;
+    SCHOOL = 1;
     MAJOR = 2;
     CITY = 3;
     VOCATION = 4;
@@ -105,14 +106,14 @@ service AdminService {
 
     rpc User (UserRequest) returns (UserResponse); // 用户详情
 
-    rpc Post (PostRequest) returns (PostResponse); // 帖子详情
+    rpc Yutap (YutapRequest) returns (YutapResponse); // 语贴详情
 
     rpc Comment (CommentRequest) returns (CommentResponse); // 评论详情
 
     rpc Topic (TopicRequest) returns (TopicResponse); // 话题 (职业使用topic审核)
 
-    // 审核帖子内容
-    rpc CensorPost (CensorPostRequest) returns (CensorPostResponse);
+    // 审核语贴内容
+    rpc CensorYutap (CensorYutapRequest) returns (CensorYutapResponse);
     
     // 审核评论内容
     rpc CensorComment (CensorCommentRequest) returns (CensorCommentResponse);
@@ -144,6 +145,12 @@ service AdminService {
     // 提现申请处理
     rpc CensorWithdraw (CensorWithdrawRequest) returns (CensorWithdrawResponse);
 
+    // 封禁用户
+    rpc BanUser (BanUserRequest) returns (BanUserResponse);
+
+    // 解封用户
+    rpc UnbanUser (UnbanUserRequest) returns (UnbanUserResponse);   
+
 }
 
 
@@ -154,9 +161,8 @@ message TestRequest {
 
 // 测试响应
 message TestResponse {
-    string id = 1; // 帖子ID
+    string id = 1; // 语贴ID
 }
-
 
 // 用户详情
 message UserRequest {
@@ -197,14 +203,14 @@ message UserResponse {
 }
 
 
-// 帖子详情
-message PostRequest {
-    string postId = 1; // 帖子ID
+// 语贴详情
+message YutapRequest {
+    string yutapId = 1; // 语贴ID
 }
 
-// 帖子详情响应
-message PostResponse {
-    string post_id = 1;
+// 语贴详情响应
+message YutapResponse {
+    string yutap_id = 1;
     string title = 2;
     string text = 3;
     bool is_top = 4;
@@ -239,7 +245,7 @@ message CommentRequest {
 // 评论详情响应
 message CommentResponse {
     string comment_id = 1;
-    string post_id = 2;
+    string yutap_id = 2;
     string relate_id = 3;
     string reply_to = 4;
     string user_id = 5;
@@ -273,16 +279,16 @@ message UserModification {
 
 
 
-// 审核帖子请求
-message CensorPostRequest {
-    string postId = 1; // 帖子ID
+// 审核语贴请求
+message CensorYutapRequest {
+    string yutapId = 1; // 语贴ID
     CensorStatus status = 2; // 审核状态
     CensorStage stage = 3; // 审核阶段
     string censorsum = 4;
 }
 
-// 审核帖子响应 (成功)
-message CensorPostResponse {
+// 审核语贴响应 (成功)
+message CensorYutapResponse {
     bool success = 1;
     string err = 2;
 }
@@ -321,22 +327,20 @@ message CensorUserResponse {
 }
 
 message TopicRequest {
-    string topicId = 1; // 话题ID
+    string topicName = 1; // 话题
 }
 
 message TopicResponse {
-    string topicId = 1; // 话题ID
-    string topicName = 2;
-    bool personable = 3;
-    UserAttrCategory category = 4;
-    CensorStatus censor_status = 5;
+    string topicName = 1; // 话题ID
+    bool personable = 2;
+    repeated  UserTagCategory categories = 3;
+    CensorStatus censor_status = 4;
 }
 
 message CensorTopicRequest {
-    string topicId = 1; // 话题ID
-    string topicName = 2; // 话题ID
-    CensorStatus status = 3; // 审核状态
-    CensorStage stage = 4; // 审核阶段
+    string topicName = 1; // 话题
+    CensorStatus status = 2; // 审核状态
+    CensorStage stage = 3; // 审核阶段
 }
 
 
@@ -425,4 +429,27 @@ message TransactionListRequest {
 
 message TransactionListResponse {
  
+}
+
+message BanUserRequest {
+    string userId = 1; // 用户ID
+    string reason = 2; // 封禁原因
+    bool permanent = 3; // 是否永久封禁
+    string ban_time = 4; // 封禁时间
+    string end_time = 5; // 解封时间
+}
+
+message BanUserResponse {
+    bool success = 1; // 是否成功
+    string err = 2; // 错误信息
+}
+
+
+message UnbanUserRequest {
+    string userId = 1; // 用户ID
+}
+
+message UnbanUserResponse {
+    bool success = 1; // 是否成功
+    string err = 2; // 错误信息
 }

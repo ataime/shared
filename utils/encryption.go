@@ -1,4 +1,4 @@
-package sharedutils
+package utils
 
 import (
 	"crypto/aes"
